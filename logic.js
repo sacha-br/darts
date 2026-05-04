@@ -306,7 +306,6 @@ function toggleBoardView(viewType) {
   }
 
   document.querySelectorAll('[name="boardView"]').forEach(radio => {
-    console.log('test', viewType, radio, radio.getAttribute('data-view') === viewType);
     radio.checked = radio.getAttribute('data-view') === viewType;
   });
 }
