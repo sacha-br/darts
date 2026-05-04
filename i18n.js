@@ -4,6 +4,8 @@ const i18n = {
   translations: {
     ru: {
       "nav_help": "ℹ️ Инструкция",
+      "view_circle": "🎯 Круг",
+      "view_classic": "🔢 Сетка",
       "setup_title": "Darts with custom rules",
       "placeholder_names": "Имена через запятую",
       "label_play_to_last": "Играть до последнего",
@@ -52,6 +54,8 @@ const i18n = {
     },
     en: {
       "nav_help": "ℹ️ Help",
+      "view_circle": "🎯 Circle",
+      "view_classic": "🔢 Grid",
       "setup_title": "Darts with custom rules",
       "placeholder_names": "Names separated by commas",
       "label_play_to_last": "Play to the last player",
