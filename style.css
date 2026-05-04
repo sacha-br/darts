@@ -1,0 +1,16 @@
+.dart-btn { width: 55px; height: 55px; margin: 3px; font-weight: bold; border-radius: 10px; }
+.multiplier-btn { width: 80px; height: 55px; margin: 3px; font-weight: 800; border-radius: 10px; }
+.active-p { background-color: #f0fff4 !important; border-left: 8px solid #198754; }
+.finished-p { background-color: #f8f9fa !important; color: #adb5bd; }
+.throw-badge { width: 55px; height: 55px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #fff; margin: 0 5px; font-weight: 900; border: 3px solid #dee2e6; transition: 0.3s; }
+.throw-active { background: #198754; color: white; border-color: #146c43; transform: translateY(-3px); }
+.award-badge { padding: 0.4em 0.7em; border-radius: 50rem; display: inline-flex; align-items: center; min-width: 70px; gap: 5px; }
+.bg-gold { background-color: #FFF9E6; color: #856404; border: 1px solid #ffeeba; }
+.bg-silver { background-color: #F8F9FA; color: #383d41; border: 1px solid #e2e3e5; }
+.bg-bronze { background-color: #FFF5F0; color: #721c24; border: 1px solid #f8d7da; }
+.bg-medal { background-color: #f1f3f5; color: #6c757d; border: 1px solid #dee2e6; }
+.status-badge { padding: 0.4em 0.8em; border-radius: 20px; font-size: 0.7rem; text-transform: uppercase; }
+.history-scroll { max-height: 400px; overflow-y: auto; font-size: 0.85rem; }
+.offcanvas-body h6 { color: #0aa2c0; border-left: 3px solid #0aa2c0; padding-left: 8px; }
+@media (min-width: 576px) { .offcanvas-end { width: 400px !important; } }
+.table-sm td { padding: 4px 8px; }
