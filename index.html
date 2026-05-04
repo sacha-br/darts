@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Darts with custom rules</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .dart-btn { width: 55px; height: 55px; margin: 3px; font-weight: bold; border-radius: 10px; }
+        .multiplier-btn { width: 80px; height: 55px; margin: 3px; font-weight: 800; border-radius: 10px; }
+        .active-p { background-color: #f0fff4 !important; border-left: 8px solid #198754; }
+        .finished-p { background-color: #f8f9fa !important; color: #adb5bd; }
+        
+        .throw-badge { 
+            width: 55px; height: 55px; border-radius: 50%; display: inline-flex; 
+            align-items: center; justify-content: center; background: #fff; 
+            margin: 0 5px; font-weight: 900; border: 3px solid #dee2e6; transition: 0.3s;
+        }
+        .throw-active { background: #198754; color: white; border-color: #146c43; transform: translateY(-3px); }
+
+        .award-badge { padding: 0.4em 0.7em; border-radius: 50rem; display: inline-flex; align-items: center; min-width: 70px; gap: 5px; }
+        .bg-gold { background-color: #FFF9E6; color: #856404; border: 1px solid #ffeeba; }
+        .bg-silver { background-color: #F8F9FA; color: #383d41; border: 1px solid #e2e3e5; }
+        .bg-bronze { background-color: #FFF5F0; color: #721c24; border: 1px solid #f8d7da; }
+        .bg-medal { background-color: #f1f3f5; color: #6c757d; border: 1px solid #dee2e6; }
+        
+        .status-badge { padding: 0.4em 0.8em; border-radius: 20px; font-size: 0.7rem; text-transform: uppercase; }
+        .history-scroll { max-height: 400px; overflow-y: auto; font-size: 0.85rem; }
+
+        .offcanvas-body h6 { color: #0aa2c0; border-left: 3px solid #0aa2c0; padding-left: 8px; }
+        @media (min-width: 576px) {
+            .offcanvas-end { width: 400px !important; }
+        }
+        .table-sm td { padding: 4px 8px; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+    <div class="d-flex justify-content-end mb-2">
+        <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="offcanvas" data-bs-target="#helpSidebar">
+            ℹ️ Инструкция
+        </button>
+    </div>
+
+    <div id="setup-box" class="card shadow-sm mx-auto mb-4" style="max-width: 500px;">
+        <div class="card-body text-center">
+            <h4 class="mb-3">Darts with custom rules</h4>
+            <input type="text" id="names" class="form-control mb-2" placeholder="Имена через запятую" value="Игрок 1, Игрок 2">
+            <input type="number" id="startScore" class="form-control mb-3" value="301">
+            <div class="form-check mb-3 text-start">
+                <input class="form-check-input" type="checkbox" id="playToLast" checked>
+                <label class="form-check-label" for="playToLast small">Играть до последнего</label>
+            </div>
+            <button class="btn btn-primary w-100" onclick="startGame()">Начать игру</button>
+        </div>
+    </div>
+
+    <div id="game-box" class="d-none">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-between mb-2 text-muted">
+                            <span id="roundDisplay">РАУНД: 1</span>
+                        </div>
+                        <h2 id="curName" class="text-success fw-bold">---</h2>
+                        <div class="d-flex justify-content-center align-items-baseline mb-3">
+                            <h1 class="display-1 fw-bold mb-0" id="curScore">0</h1>
+                            <span class="fs-3 text-muted ms-2" id="curRemaining" style="display: none;"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="throw-badge" id="t-0">-</div>
+                            <div class="throw-badge" id="t-1">-</div>
+                            <div class="throw-badge" id="t-2">-</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <button class="btn btn-outline-danger multiplier-btn" id="m2" onclick="setMult(2)">X2</button>
+                            <button class="btn btn-outline-danger multiplier-btn" id="m3" onclick="setMult(3)">X3</button>
+                            <button class="btn btn-secondary multiplier-btn" onclick="addScore(0)">0</button>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap justify-content-center">
+                            <script>
+                                for(let i=1; i<=20; i++) document.write(`<button class="btn btn-outline-dark dart-btn" onclick="addScore(${i})">${i}</button>`);
+                            </script>
+                            <button class="btn btn-dark dart-btn" onclick="addScore(25)">25</button>
+                            <button class="btn btn-dark dart-btn" onclick="addScore(50)">50</button>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <button class="btn btn-sm btn-outline-warning me-2" onclick="undoLastThrow()">Отмена</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="resetTurn()">Сброс хода</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="confirmNewGame()">Новая игра</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold">История бросков</div>
+                    <div class="card-body p-0 history-scroll">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr><th>Раунд</th><th>Игрок</th><th>Броски</th><th>Сумма</th><th>Остаток</th></tr>
+                            </thead>
+                            <tbody id="historyTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 mb-3">
+                    <table class="table mb-0 align-middle">
+                        <thead class="table-dark">
+                            <tr><th>Место</th><th>Игрок</th><th>Очки</th><th>Статус</th></tr>
+                        </thead>
+                        <tbody id="scoreTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="finish-msg" class="d-none p-4 bg-white shadow rounded text-center">
+                    <h3 class="text-success mb-3">Игра окончена!</h3>
+                    <button class="btn btn-primary btn-lg me-2" onclick="rematch()">Реванш</button>
+                    <button class="btn btn-outline-primary btn-lg" onclick="newGame()">Новая игра</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модалки -->
+<div class="modal fade" id="bustModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content bg-danger text-white text-center p-4 border-0 shadow-lg"><h2>ПЕРЕБОР!</h2></div></div></div>
+<div class="modal fade" id="winModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content bg-success text-white text-center p-5 border-0 shadow-lg"><h2>ПОБЕДА! 🎯</h2><h1 id="winnerNameDisplay" class="display-3 fw-bold"></h1><p class="fs-4" id="winnerPlaceText"></p></div></div></div>
+
+<script>
+let players = [], curIdx = 0, multiplier = 1, currentTurnThrows = [];
+let currentPlace = 1, someoneWonInThisRound = false, roundNum = 1;
+let isGameOver = false;
+
+function startGame() {
+    const namesVal = document.getElementById('names').value;
+    if (!namesVal.trim()) return;
+    setupGame(namesVal.split(',').map(n => n.trim()));
+}
+
+function setupGame(nameList) {
+    const startVal = parseInt(document.getElementById('startScore').value);
+    players = nameList.map(n => ({ name: n, score: startVal, isFinished: false, place: null }));
+    curIdx = 0; currentPlace = 1; roundNum = 1; someoneWonInThisRound = false; 
+    currentTurnThrows = [];
+    document.getElementById('historyTable').innerHTML = '';
+    document.getElementById('setup-box').classList.add('d-none');
+    document.getElementById('game-box').classList.remove('d-none');
+    document.getElementById('finish-msg').classList.add('d-none');
+    updateUI();
+    saveGameState();
+}
+
+function rematch() { setupGame(players.map(p => p.name)); }
+function newGame() { location.reload(); }
+
+function setMult(m) {
+    multiplier = (multiplier === m) ? 1 : m;
+    document.getElementById('m2').className = multiplier === 2 ? 'btn btn-danger multiplier-btn' : 'btn btn-outline-danger multiplier-btn';
+    document.getElementById('m3').className = multiplier === 3 ? 'btn btn-danger multiplier-btn' : 'btn btn-outline-danger multiplier-btn';
+}
+
+function addScore(val) {
+    if (currentTurnThrows.length >= 3) return;
+    let res = val * multiplier;
+    if (val === 25) {
+        res = (multiplier === 2) ? 50 : 25;
+    } else if (val === 50) {
+        res = 50;
+    }
+    currentTurnThrows.push(res);
+    multiplier = 1; setMult(1);
+    updateUI();
+    if (currentTurnThrows.length === 3) setTimeout(finishTurn, 400);
+    saveGameState();
+}
+
+function finishTurn() {
+    const p = players[curIdx];
+    const sum = currentTurnThrows.reduce((a, b) => a + b, 0);
+    const prevScore = p.score;
+
+    if (p.score - sum >= 0) {
+        p.score -= sum;
+        addHistoryRow(roundNum, p.name, currentTurnThrows, sum, p.score);
+        if (p.score === 0) {
+            p.isFinished = true; p.place = currentPlace; someoneWonInThisRound = true;
+            showWinModal(p.name, p.place); currentTurnThrows = []; return;
+        }
+        currentTurnThrows = []; nextPlayer();
+    } else {
+        addHistoryRow(roundNum, p.name, currentTurnThrows, "BUST", prevScore);
+        const m = new bootstrap.Modal(document.getElementById('bustModal'));
+        m.show(); setTimeout(() => { m.hide(); currentTurnThrows = []; nextPlayer(); }, 1200);
+    }
+    saveGameState();
+}
+
+function addHistoryRow(round, name, throws, sum, remains) {
+    const tbody = document.getElementById('historyTable');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${round}</td><td>${name}</td><td class="text-muted">${throws.join(', ')}</td><td class="fw-bold text-primary">${sum}</td><td class="fw-bold">${remains}</td>`;
+    tbody.prepend(tr); // Новые записи сверху
+}
+
+function nextPlayer() {
+    let oldIdx = curIdx;
+    let nextIdx = (curIdx + 1) % players.length;
+    const playToLast = document.getElementById('playToLast').checked;
+
+    if (nextIdx === 0 || nextIdx < oldIdx) {
+        if (someoneWonInThisRound) { currentPlace++; someoneWonInThisRound = false; }
+        roundNum++;
+        const active = players.filter(pl => !pl.isFinished);
+        if (!playToLast && active.length === 1) {
+            active[0].isFinished = true; active[0].place = currentPlace;
+            endGame(); return;
+        }
+    }
+    curIdx = nextIdx;
+    if (players.filter(pl => !pl.isFinished).length === 0) { endGame(); return; }
+    if (players[curIdx].isFinished) { nextPlayer(); return; }
+    updateUI();
+    saveGameState();
+}
+
+function getAward(place) {
+    if (!place) return `<span class="text-muted">—</span>`;
+    let cls = ["bg-gold", "bg-silver", "bg-bronze"][place-1] || "bg-medal";
+    let icon = ["🥇", "🥈", "🥉"][place-1] || "🏅";
+    return `<div class="award-badge ${cls}">${icon} ${place}</div>`;
+}
+
+function updateUI() {
+    const p = players[curIdx];
+    if (p && !p.isFinished) {
+        document.getElementById('curName').innerText = p.name;
+        document.getElementById('curScore').innerText = p.score;
+        document.getElementById('roundDisplay').innerText = "РАУНД: " + roundNum;
+        
+        const curRemainingEl = document.getElementById('curRemaining');
+        if (currentTurnThrows.length > 0) {
+            const currentTurnSum = currentTurnThrows.reduce((a, b) => a + b, 0);
+            const remaining = p.score - currentTurnSum;
+            
+            curRemainingEl.innerText = `➜ ${remaining}`;
+            curRemainingEl.style.display = 'inline';
+            
+            if (remaining < 0) {
+                curRemainingEl.className = 'fs-3 text-danger ms-2 fw-bold';
+                curRemainingEl.innerText = `➜ BUST`;
+            } else {
+                curRemainingEl.className = 'fs-3 text-muted ms-2';
+            }
+        } else {
+            curRemainingEl.style.display = 'none';
+        }
+    }
+    for (let i = 0; i < 3; i++) {
+        const b = document.getElementById(`t-${i}`);
+        b.innerText = currentTurnThrows[i] !== undefined ? currentTurnThrows[i] : '-';
+        b.className = currentTurnThrows[i] !== undefined ? 'throw-badge throw-active' : 'throw-badge';
+    }
+    const tbody = document.getElementById('scoreTable');
+    tbody.innerHTML = '';
+    players.forEach((pl, i) => {
+        const tr = document.createElement('tr');
+        if (pl.isFinished) tr.className = 'finished-p';
+        else if (i === curIdx) tr.className = 'active-p';
+        tr.innerHTML = `<td>${getAward(pl.place)}</td>
+                        <td class="fw-bold">${pl.name}</td>
+                        <td class="fs-5">${pl.score}</td>
+                        <td><span class="status-badge ${pl.isFinished ? 'bg-secondary text-white' : (i===curIdx?'bg-success text-white':'bg-light text-dark')}">
+                            ${pl.isFinished ? 'Финиш' : (i===curIdx?'Ходит':'Ждет')}
+                        </span></td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function showWinModal(name, place) {
+    document.getElementById('winnerNameDisplay').innerText = name;
+    document.getElementById('winnerPlaceText').innerText = "Вы заняли " + place + " место!";
+    const m = new bootstrap.Modal(document.getElementById('winModal'));
+    m.show(); setTimeout(() => { m.hide(); nextPlayer(); }, 1500);
+}
+
+function endGame() { isGameOver = true; document.getElementById('finish-msg').classList.remove('d-none'); updateUI(); }
+function undoLastThrow() { currentTurnThrows.pop(); updateUI(); saveGameState(); }
+function resetTurn() { currentTurnThrows = []; updateUI(); saveGameState(); }
+
+function saveGameState() {
+    const state = {
+        players,
+        curIdx,
+        multiplier,
+        currentTurnThrows,
+        currentPlace,
+        someoneWonInThisRound,
+        roundNum,
+        isGameOver,
+        historyHTML: document.getElementById('historyTable').innerHTML
+    };
+    localStorage.setItem('dartsState', JSON.stringify(state));
+}
+
+window.onload = function() {
+    const saved = localStorage.getItem('dartsState');
+    if (saved) {
+        const state = JSON.parse(saved);
+        players = state.players;
+        curIdx = state.curIdx;
+        multiplier = state.multiplier;
+        currentTurnThrows = state.currentTurnThrows;
+        currentPlace = state.currentPlace;
+        someoneWonInThisRound = state.someoneWonInThisRound;
+        roundNum = state.roundNum;
+        isGameOver = state.isGameOver || false;
+
+        document.getElementById('setup-box').classList.add('d-none');
+        document.getElementById('game-box').classList.remove('d-none');
+        document.getElementById('historyTable').innerHTML = state.historyHTML;
+        
+        if (isGameOver) document.getElementById('finish-msg').classList.remove('d-none');
+        
+        updateUI();
+    }
+};
+
+function confirmNewGame() {
+    if (confirm("Вы уверены, что хотите начать новую игру? Весь прогресс будет удален.")) {
+        localStorage.removeItem('dartsState');
+        location.reload();
+    }
+}
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="helpSidebar" aria-labelledby="helpSidebarLabel">
+  <div class="offcanvas-header bg-info text-white">
+    <h5 class="offcanvas-title" id="helpSidebarLabel">🎯 Памятка игрока</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="mb-4">
+        <h6><strong>1. Множители (X2, X3)</strong></h6>
+        <p class="small text-muted">Сначала жмите <b>X2</b> или <b>X3</b>, потом число. Множитель сбросится сам после ввода броска.</p>
+    </div>
+    <div class="mb-4">
+        <h6><strong>2. Зеленые круги</strong></h6>
+        <p class="small text-muted">Это ваши дротики. В них сразу отображается результат каждого попадания.</p>
+    </div>
+    <div class="mb-4">
+        <h6><strong>3. Авто-завершение</strong></h6>
+        <p class="small text-muted">Ход переходит к следующему игроку автоматически после 3-го броска.</p>
+    </div>
+    <div class="mb-4">
+        <h6><strong>4. Перебор (Bust)</strong></h6>
+        <p class="small text-muted">Если выбили больше, чем осталось — очки за раунд не засчитываются.</p>
+    </div>
+    <div class="mb-4">
+        <h6><strong>5. Награды</strong></h6>
+        <p class="small text-muted">🥇, 🥈, 🥉 — за первые три места. Игроки, закрывшиеся в одном раунде, делят место.</p>
+    </div>
+    <hr>
+    <div class="alert alert-light border small">
+        <strong>Подсказка:</strong> Пользуйтесь кнопкой «Отмена», если ошиблись вводом последнего дротика.
+    </div>
+    <hr>
+    <h6 class="mb-3">Популярные закрытия (Checkouts)</h6>
+    <div class="table-responsive">
+        <table class="table table-sm table-striped border" style="font-size: 0.8rem;">
+            <thead class="table-light">
+                <tr>
+                    <th>Остаток</th>
+                    <th>Комбинация</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>170</td><td>T20, T20, Bull (макс.)</td></tr>
+                <tr><td>167</td><td>T20, T19, Bull</td></tr>
+                <tr><td>164</td><td>T20, T18, Bull</td></tr>
+                <tr><td>161</td><td>T20, T17, Bull</td></tr>
+                <tr><td>160</td><td>T20, T20, D20</td></tr>
+                <tr><td>158</td><td>T20, T20, D19</td></tr>
+                <tr><td>150</td><td>T20, T18, D18</td></tr>
+                <tr><td>140</td><td>T20, T16, D16</td></tr>
+                <tr><td>121</td><td>T20, 11, D25</td></tr>
+                <tr><td>100</td><td>T20, D20</td></tr>
+                <tr><td>80</td><td>T20, D10</td></tr>
+                <tr><td>60</td><td>20, D20</td></tr>
+                <tr><td>40</td><td>D20</td></tr>
+                <tr><td>32</td><td>D16</td></tr>
+            </tbody>
+        </table>
+        <small class="text-muted">* T — Triple (X3), D — Double (X2)</small>
+    </div>
+  </div>
+</div>
+</body>
+</html>
