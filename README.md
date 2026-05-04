@@ -1,5 +1,7 @@
 # 🎯 Darts Game (Кастомные правила)
 
+[![Поиграть в Дартс](https://img.shields.io/badge/Поиграть%20в%20Дартс-GitHub%20Pages-brightgreen?style=for-the-badge&logo=github)](https://sacha-br.github.io/darts/)
+
 Простая и легкая игра в дартс, реализованная на HTML и Bootstrap 5.3.0. Позволяет играть по нестандартным домашним правилам.
 
 ## ✨ Особенности
