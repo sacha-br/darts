@@ -268,6 +268,19 @@
               <div id="qrcode" class="d-flex justify-content-center"></div>
               <hr class="my-2">
               <button class="btn btn-sm btn-outline-danger w-100" onclick="generateNewRoom()" style="font-size: 10px;">Новый ID</button>
+              <div class="mt-2 text-center">
+                <select id="transportSelect" class="form-select form-select-sm" onchange="changeTransport(this.value)">
+                  <option value="peerjs">P2P (PeerJS)</option>
+                  <option value="firebase">Cloud (Firebase)</option>
+                </select>
+              </div>
+              
+              <script>
+                const currentTr = new URLSearchParams(window.location.search).get('transport') 
+                                  || localStorage.getItem('darts_transport') 
+                                  || 'peerjs';
+                document.getElementById('transportSelect').value = currentTr;
+              </script>
           </div>
       </div>
       <button class="btn btn-dark shadow-lg rounded-circle p-3" onclick="document.getElementById('qr-card').classList.toggle('d-none')">
@@ -301,6 +314,8 @@
   <!-- Скрипты -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="i18n.js"></script>
   <script src="dartboard-wrapper.js"></script>
