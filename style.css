@@ -1,3 +1,36 @@
+:root {
+  --board-size: min(100vw, 650px);
+  --c-black: #1c1c1c;
+  --c-white: #f4f3ef;
+  --c-red: #e02424;
+  --c-green: #15803d;
+}
+.dartboard-wrapper {
+  width: var(--board-size);
+  height: var(--board-size);
+  margin: 0 auto;
+}
+.db-sector {
+  cursor: pointer;
+  stroke: #4b5563;
+  stroke-width: 0.5px;
+  transition: filter 0.1s ease;
+}
+.db-sector:hover {
+  filter: brightness(1.3);
+}
+.db-sector:active {
+  filter: brightness(0.8);
+}
+.db-text {
+  font-size: 14px;
+  font-family: sans-serif;
+  font-weight: 900;
+  fill: #ffffff;
+  pointer-events: none; /* Пропускает клики сквозь текст на сектор */
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
 .dart-btn { width: 55px; height: 55px; margin: 3px; font-weight: bold; border-radius: 10px; }
 .multiplier-btn { width: 80px; height: 55px; margin: 3px; font-weight: 800; border-radius: 10px; }
 .active-p { background-color: #f0fff4 !important; border-left: 8px solid #198754; }

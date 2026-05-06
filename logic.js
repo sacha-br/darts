@@ -5,7 +5,11 @@ let isGameOver = false;
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
   const savedLang = localStorage.getItem('dartsLang') || 'ru';
-  applyTranslations(savedLang); 
+  applyTranslations(savedLang);
+
+  const savedBoardView = localStorage.getItem('dartsBoardView') || 'classic';
+  toggleBoardView(savedBoardView);
+
   loadGameState();
 });
 
@@ -283,4 +287,25 @@ function confirmNewGame() {
   if (confirm(message)) {
     newGame();
   }
+}
+
+function toggleBoardView(viewType) {
+  localStorage.setItem('dartsBoardView', viewType);
+
+  const circleBoard = document.querySelector('.dartboard-wrapper');
+  const classicBoard = document.querySelector('.dartboard-classic');
+
+  if (!circleBoard || !classicBoard) return;
+
+  if (viewType === 'circle') {
+    circleBoard.classList.remove('d-none');
+    classicBoard.classList.add('d-none');
+  } else if (viewType === 'classic') {
+    circleBoard.classList.add('d-none');
+    classicBoard.classList.remove('d-none');
+  }
+
+  document.querySelectorAll('[name="boardView"]').forEach(radio => {
+    radio.checked = radio.getAttribute('data-view') === viewType;
+  });
 }
