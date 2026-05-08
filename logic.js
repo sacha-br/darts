@@ -70,6 +70,12 @@ function addScore(val) {
   saveGameState();
 }
 
+function addPopularCombo(combo) {
+  if (!Array.isArray(combo) || combo.length !== 3) return;
+  if (currentTurnThrows.length > 0) resetTurn();
+  combo.forEach(val => addScore(val));
+}
+
 function finishTurn() {
   const p = players[curIdx];
   const sum = currentTurnThrows.reduce((a, b) => a + b, 0);
