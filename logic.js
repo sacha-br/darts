@@ -4,13 +4,18 @@ let isGameOver = false;
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-  const savedLang = localStorage.getItem('dartsLang') || 'ru';
-  applyTranslations(savedLang);
+  if (isMobile()) {
+    initMobileRemote();
+  } else {
+    initDesktopPeer();
 
-  const savedBoardView = localStorage.getItem('dartsBoardView') || 'classic';
-  toggleBoardView(savedBoardView);
+    const savedLang = localStorage.getItem('dartsLang') || 'ru';
+    applyTranslations(savedLang);
+    const savedBoardView = localStorage.getItem('dartsBoardView') || 'classic';
+    toggleBoardView(savedBoardView);
 
-  loadGameState();
+    loadGameState();
+  }
 });
 
 function startGame() {
