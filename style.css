@@ -27,7 +27,7 @@
   font-family: sans-serif;
   font-weight: 900;
   fill: #ffffff;
-  pointer-events: none; /* Пропускает клики сквозь текст на сектор */
+  pointer-events: none;
   text-anchor: middle;
   dominant-baseline: middle;
 }

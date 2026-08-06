@@ -37,6 +37,8 @@ function initMobileRemote() {
             });
         });
     }
+
+    startCamera();
 }
 
 function updateUIAndConnect() {
