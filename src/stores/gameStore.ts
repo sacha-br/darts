@@ -2,18 +2,22 @@ import { defineStore } from 'pinia'
 import { ref, shallowRef, computed } from 'vue'
 import type { Player, HistoryEntry, GameSetupConfig } from '@/types/game'
 import {
-  MAX_THROWS_PER_TURN,
   BUST_MODAL_DURATION_MS,
   WIN_MODAL_DURATION_MS,
-  AUTO_FINISH_DELAY_MS
+  AUTO_FINISH_DELAY_MS,
 } from '@/constants/dartboard'
 
 const STORAGE_KEY = 'dartsGameState'
 
+interface Throw {
+  zone: number
+  multiplier: number
+}
+
 interface PersistedState {
   players: Player[]
   currentPlayerIndex: number
-  currentTurnThrows: number[]
+  currentTurnThrows: Throw[]
   currentPlace: number
   someoneWonInThisRound: boolean
   roundNumber: number
@@ -22,13 +26,15 @@ interface PersistedState {
   history: HistoryEntry[]
   playToLast: boolean
   startScore: number
+  endWithDouble: boolean
+  maxThrowsPerLeg: number
 }
 
 export const useGameStore = defineStore('game', () => {
   // ─── Основное состояние
   const players = ref<Player[]>([])
   const currentPlayerIndex = shallowRef(0)
-  const currentTurnThrows = ref<number[]>([])
+  const currentTurnThrows = ref<Throw[]>([])
   const currentPlace = shallowRef(1)
   const someoneWonInThisRound = shallowRef(false)
   const roundNumber = shallowRef(1)
@@ -36,7 +42,9 @@ export const useGameStore = defineStore('game', () => {
   const isGameStarted = shallowRef(false)
   const history = ref<HistoryEntry[]>([])
   const playToLast = shallowRef(true)
+  const endWithDouble = shallowRef(true)
   const startScore = shallowRef(301)
+  const maxThrowsPerLeg = shallowRef(3)
 
   // ─── Множитель (только для классической доски)
   const multiplier = shallowRef(1)
@@ -50,15 +58,17 @@ export const useGameStore = defineStore('game', () => {
 
   // ─── Вычисляемые свойства
   const currentPlayer = computed<Player | null>(() =>
-    isGameStarted.value ? (players.value[currentPlayerIndex.value] ?? null) : null
+    isGameStarted.value
+      ? (players.value[currentPlayerIndex.value] ?? null)
+      : null,
   )
 
   const activePlayers = computed(() =>
-    players.value.filter(p => !p.isFinished)
+    players.value.filter((p) => !p.isFinished),
   )
 
   const currentTurnSum = computed(() =>
-    currentTurnThrows.value.reduce((a, b) => a + b, 0)
+    currentTurnThrows.value.reduce((a, b) => a + b.zone * b.multiplier, 0),
   )
 
   const currentRemaining = computed(() => {
@@ -69,14 +79,16 @@ export const useGameStore = defineStore('game', () => {
   // ─── Действия
 
   function startGame(config: GameSetupConfig): void {
-    players.value = config.playerNames.map(name => ({
+    players.value = config.playerNames.map((name) => ({
       name,
       score: config.startScore,
       isFinished: false,
-      place: null
+      place: null,
     }))
     startScore.value = config.startScore
     playToLast.value = config.playToLast
+    endWithDouble.value = config.endWithDouble
+    maxThrowsPerLeg.value = config.throwsPerLeg
     currentPlayerIndex.value = 0
     currentPlace.value = 1
     roundNumber.value = 1
@@ -96,24 +108,36 @@ export const useGameStore = defineStore('game', () => {
     multiplier.value = multiplier.value === m ? 1 : m
   }
 
-  function resolveScore(baseValue: number, zoneMultiplier?: number): number {
-    const effective = zoneMultiplier ?? multiplier.value
-    if (baseValue === 0) return 0
-    if (baseValue === 25) return effective === 2 ? 50 : 25
-    if (baseValue === 50) return 50
-    return baseValue * effective
+  function throwToHistoryStr(playerThrow: Throw): string {
+    if (playerThrow.multiplier == 2) {
+      return `D${playerThrow.zone}`
+    }
+    if (playerThrow.multiplier == 3) {
+      return `T${playerThrow.zone}`
+    }
+    return `${playerThrow.zone}`
   }
 
   function addScore(baseValue: number, zoneMultiplier?: number): void {
-    if (currentTurnThrows.value.length >= MAX_THROWS_PER_TURN) return
+    if (currentTurnThrows.value.length >= maxThrowsPerLeg.value) return
     if (isGameOver.value || isProcessingTurn.value) return
     if (!currentPlayer.value || currentPlayer.value.isFinished) return
 
-    const finalScore = resolveScore(baseValue, zoneMultiplier)
-    currentTurnThrows.value.push(finalScore)
+    if (baseValue == 50) {
+      baseValue = 25
+      zoneMultiplier = 2
+    }
+
+    currentTurnThrows.value.push({
+      zone: baseValue,
+      multiplier: zoneMultiplier ?? multiplier.value,
+    })
     multiplier.value = 1
 
-    if (currentTurnThrows.value.length === MAX_THROWS_PER_TURN) {
+    if (currentTurnThrows.value.length === maxThrowsPerLeg.value) {
+      isProcessingTurn.value = true
+      setTimeout(() => finishTurn(), AUTO_FINISH_DELAY_MS)
+    } else if (currentPlayer.value.score - currentTurnSum.value <= 0) {
       isProcessingTurn.value = true
       setTimeout(() => finishTurn(), AUTO_FINISH_DELAY_MS)
     }
@@ -122,13 +146,13 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function addPopularCombo(combo: readonly number[]): void {
-    if (combo.length !== MAX_THROWS_PER_TURN) return
+    if (combo.length !== maxThrowsPerLeg.value) return
     if (isGameOver.value || isProcessingTurn.value) return
     if (!currentPlayer.value || currentPlayer.value.isFinished) return
 
     if (currentTurnThrows.value.length > 0) resetTurn()
     // Пресеты — это готовые значения бросков, множитель к ним не применяется.
-    combo.forEach(value => addScore(value, 1))
+    combo.forEach((value) => addScore(value, 1))
   }
 
   function finishTurn(): void {
@@ -137,48 +161,64 @@ export const useGameStore = defineStore('game', () => {
 
     const sum = currentTurnSum.value
     const prevScore = player.score
-
-    if (player.score - sum >= 0) {
+    if (
+      (!endWithDouble.value && player.score - sum > 0) ||
+      (endWithDouble.value && player.score - sum > 1)
+    ) {
       player.score -= sum
 
       history.value.unshift({
         round: roundNumber.value,
         playerName: player.name,
-        throws: [...currentTurnThrows.value],
+        throws: [...currentTurnThrows.value.map((el) => throwToHistoryStr(el))],
         sum,
-        remaining: player.score
+        remaining: player.score,
       })
-
-      if (player.score === 0) {
-        player.isFinished = true
-        player.place = currentPlace.value
-        someoneWonInThisRound.value = true
-
-        winModalData.value = { name: player.name, place: player.place }
-        currentTurnThrows.value = []
-        persistState()
-
-        setTimeout(() => {
-          winModalData.value = null
-          isProcessingTurn.value = false
-          advanceToNextPlayer()
-        }, WIN_MODAL_DURATION_MS)
-        return
-      }
-
       currentTurnThrows.value = []
       isProcessingTurn.value = false
       advanceToNextPlayer()
+      return
+    } else if (
+      player.score - sum == 0 &&
+      ((endWithDouble.value &&
+        currentTurnThrows.value.filter((el) => el.zone).at(-1)?.multiplier ==
+          2) ||
+        !endWithDouble.value)
+    ) {
+      player.score -= sum
+
+      history.value.unshift({
+        round: roundNumber.value,
+        playerName: player.name,
+        throws: [...currentTurnThrows.value.map((el) => throwToHistoryStr(el))],
+        sum,
+        remaining: player.score,
+      })
+
+      player.isFinished = true
+      player.place = currentPlace.value
+      someoneWonInThisRound.value = true
+
+      winModalData.value = { name: player.name, place: player.place }
+      currentTurnThrows.value = []
+      persistState()
+
+      setTimeout(() => {
+        winModalData.value = null
+        isProcessingTurn.value = false
+        advanceToNextPlayer()
+      }, WIN_MODAL_DURATION_MS)
+      return
     } else {
       history.value.unshift({
         round: roundNumber.value,
         playerName: player.name,
-        throws: [...currentTurnThrows.value],
+        throws: [...currentTurnThrows.value.map((el) => throwToHistoryStr(el))],
         sum: 'BUST',
-        remaining: prevScore
+        remaining: prevScore,
       })
 
-      bustModalVisible.value = true
+      // bustModalVisible.value = true
       persistState()
 
       setTimeout(() => {
@@ -225,6 +265,40 @@ export const useGameStore = defineStore('game', () => {
     persistState()
   }
 
+  function undoLastLeg(): void {
+    if (!history.value.length) return
+
+    let prevLeg = history.value.shift()
+    let prevPlayerIndex = players.value.findIndex(
+      (el) => el.name == prevLeg!.playerName,
+    )
+    let thisRoundLeftHistory = history.value.filter(
+      (el) => el.round == prevLeg!.round,
+    )
+    roundNumber.value = prevLeg!.round
+
+    if (prevLeg?.sum == 'BUST') {
+      currentPlayerIndex.value = prevPlayerIndex
+      return
+    }
+
+    if (prevLeg?.remaining == 0) {
+      players.value[prevPlayerIndex]!.isFinished = false
+      players.value[prevPlayerIndex]!.place = null
+      someoneWonInThisRound.value = !!thisRoundLeftHistory.find(
+        (el) => el.remaining == 0,
+      )
+      if (!someoneWonInThisRound.value) {
+        currentPlace.value--
+      }
+    }
+
+    players.value[prevPlayerIndex]!.score += prevLeg!.sum
+    currentPlayerIndex.value = prevPlayerIndex
+
+    persistState()
+  }
+
   function endGame(): void {
     isGameOver.value = true
     persistState()
@@ -246,9 +320,11 @@ export const useGameStore = defineStore('game', () => {
   function rematch(): void {
     if (players.value.length === 0) return
     startGame({
-      playerNames: players.value.map(p => p.name),
+      playerNames: players.value.map((p) => p.name),
       startScore: startScore.value,
-      playToLast: playToLast.value
+      throwsPerLeg: maxThrowsPerLeg.value,
+      playToLast: playToLast.value,
+      endWithDouble: endWithDouble.value,
     })
   }
 
@@ -283,7 +359,9 @@ export const useGameStore = defineStore('game', () => {
       isGameStarted: isGameStarted.value,
       history: history.value,
       playToLast: playToLast.value,
-      startScore: startScore.value
+      startScore: startScore.value,
+      endWithDouble: endWithDouble.value,
+      maxThrowsPerLeg: maxThrowsPerLeg.value,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }
@@ -307,6 +385,8 @@ export const useGameStore = defineStore('game', () => {
       startScore.value = state.startScore ?? 301
       multiplier.value = 1
       isProcessingTurn.value = false
+      endWithDouble.value = state.endWithDouble
+      maxThrowsPerLeg.value = state.maxThrowsPerLeg
 
       // Перезагрузка при открытой модалке победы сбрасывает таймер перехода,
       // поэтому ход остался бы на уже финишировавшем игроке и addScore() отклонял бы все броски.
@@ -326,6 +406,10 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  function bust(): void {
+    addScore(currentPlayer.value!.score + 2, 1)
+  }
+
   return {
     players,
     currentPlayerIndex,
@@ -338,6 +422,7 @@ export const useGameStore = defineStore('game', () => {
     playToLast,
     startScore,
     multiplier,
+    maxThrowsPerLeg,
     bustModalVisible,
     winModalData,
     isProcessingTurn,
@@ -349,12 +434,14 @@ export const useGameStore = defineStore('game', () => {
 
     startGame,
     setMultiplier,
+    bust,
     addScore,
     addPopularCombo,
     undoLastThrow,
+    advanceToPrevLeg: undoLastLeg,
     resetTurn,
     rematch,
     newGame,
-    loadPersistedState
+    loadPersistedState,
   }
 })

@@ -22,6 +22,20 @@ function confirmNewGame(): void {
       {{ t('btn_undo') }}
     </button>
     <button
+      class="btn btn-sm btn-outline-primary me-2"
+      :disabled="game.isProcessingTurn"
+      @click="game.advanceToPrevLeg()"
+    >
+      {{ t('btn_undo_leg') }}
+    </button>
+    <button
+      class="btn btn-sm btn-outline-danger me-2"
+      :disabled="game.isProcessingTurn"
+      @click="game.bust()"
+    >
+      {{ t('btn_bust') }}
+    </button>
+    <button
       class="btn btn-sm btn-outline-secondary me-2"
       :disabled="game.isProcessingTurn"
       @click="game.resetTurn()"

@@ -1,11 +1,10 @@
 export const MAX_THROWS_PER_TURN = 3
-export const BUST_MODAL_DURATION_MS = 1200
-export const WIN_MODAL_DURATION_MS = 1500
+export const BUST_MODAL_DURATION_MS = 200
+export const WIN_MODAL_DURATION_MS = 300
 export const AUTO_FINISH_DELAY_MS = 400
 
 export const SECTORS_ORDER = [
-  20, 1, 18, 4, 13, 6, 10, 15, 2, 17,
-  3, 19, 7, 16, 8, 11, 14, 9, 12, 5
+  20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5,
 ] as const
 
 export const ANGLE_PER_SECTOR = 18
@@ -29,10 +28,10 @@ function createArcPath(
   startAngle: number,
   endAngle: number,
   innerRadius: number,
-  outerRadius: number
+  outerRadius: number,
 ): string {
-  const startRad = (startAngle - 90) * Math.PI / 180
-  const endRad = (endAngle - 90) * Math.PI / 180
+  const startRad = ((startAngle - 90) * Math.PI) / 180
+  const endRad = ((endAngle - 90) * Math.PI) / 180
 
   const x1 = outerRadius * Math.cos(startRad)
   const y1 = outerRadius * Math.sin(startRad)
@@ -49,7 +48,7 @@ function createArcPath(
     `A ${outerRadius} ${outerRadius} 0 0 1 ${x2} ${y2}`,
     `L ${x3} ${y3}`,
     `A ${innerRadius} ${innerRadius} 0 0 0 ${x4} ${y4}`,
-    'Z'
+    'Z',
   ].join(' ')
 }
 
@@ -59,7 +58,7 @@ export const SECTOR_GEOMETRIES: SectorGeometry[] = SECTORS_ORDER.map(
     const endAngle = startAngle + ANGLE_PER_SECTOR
     const isEven = index % 2 === 0
 
-    const textRad = (startAngle + 9) * Math.PI / 180 - Math.PI / 2
+    const textRad = ((startAngle + 9) * Math.PI) / 180 - Math.PI / 2
     const numberX = 185 * Math.cos(textRad)
     const numberY = 185 * Math.sin(textRad)
 
@@ -75,9 +74,9 @@ export const SECTOR_GEOMETRIES: SectorGeometry[] = SECTORS_ORDER.map(
       mainColor: isEven ? 'var(--c-black)' : 'var(--c-white)',
       modColor: isEven ? 'var(--c-red)' : 'var(--c-green)',
       numberX,
-      numberY
+      numberY,
     }
-  }
+  },
 )
 
 export interface CheckoutEntry {
@@ -96,10 +95,10 @@ export const POPULAR_CHECKOUTS: CheckoutEntry[] = [
   { remaining: 140, combination: 'T20, T16, D16' },
   { remaining: 121, combination: 'T20, 11, D25' },
   { remaining: 100, combination: 'T20, D20' },
-  { remaining: 80,  combination: 'T20, D10' },
-  { remaining: 60,  combination: '20, D20' },
-  { remaining: 40,  combination: 'D20' },
-  { remaining: 32,  combination: 'D16' }
+  { remaining: 80, combination: 'T20, D10' },
+  { remaining: 60, combination: '20, D20' },
+  { remaining: 40, combination: 'D20' },
+  { remaining: 32, combination: 'D16' },
 ]
 
 export interface ThrowCombo {
@@ -116,6 +115,5 @@ export const POPULAR_COMBOS: ThrowCombo[] = [
 ]
 
 export const CLASSIC_BOARD_VALUES = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-  11, 12, 13, 14, 15, 16, 17, 18, 19, 20
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 ] as const

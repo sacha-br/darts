@@ -31,25 +31,27 @@ function onSectorClick(value: number, multiplier: number): void {
         <path
           :d="sector.doublePath"
           :fill="sector.modColor"
-          class="db-sector"
+          class="db-sector db-sector-dark"
           @click="onSectorClick(sector.value, 2)"
         />
         <path
           :d="sector.outerSinglePath"
           :fill="sector.mainColor"
           class="db-sector"
+          :class="{ 'db-sector-dark': sector.isEven }"
           @click="onSectorClick(sector.value, 1)"
         />
         <path
           :d="sector.triplePath"
           :fill="sector.modColor"
-          class="db-sector"
+          class="db-sector db-sector-dark"
           @click="onSectorClick(sector.value, 3)"
         />
         <path
           :d="sector.innerSinglePath"
           :fill="sector.mainColor"
           class="db-sector"
+          :class="{ 'db-sector-dark': sector.isEven }"
           @click="onSectorClick(sector.value, 1)"
         />
       </template>
@@ -97,10 +99,18 @@ function onSectorClick(value: number, multiplier: number): void {
 }
 
 .db-sector:hover {
-  filter: brightness(1.3);
+  filter: brightness(0.3);
 }
 
 .db-sector:active {
+  filter: brightness(0.8);
+}
+
+.db-sector-dark:hover {
+  filter: brightness(3);
+}
+
+.db-sector-dark:active {
   filter: brightness(0.8);
 }
 
