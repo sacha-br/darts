@@ -35,3 +35,10 @@ export interface GameRules {
 export interface GameSetupConfig extends GameRules {
   playerNames: string[]
 }
+
+/** К чему относится партия: движок игры одинаков, отличаются источник игроков, правила и использование результата. */
+export type MatchContext =
+  | { kind: 'casual' }
+  | { kind: 'tournament'; tournamentId: string; matchId: string }
+
+export const CASUAL_CONTEXT = { kind: 'casual' } as const satisfies MatchContext

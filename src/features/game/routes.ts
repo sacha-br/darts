@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { RouteName } from '@/shared/router/routeNames'
 import { useGameStore } from './stores/gameStore'
+import { activeGameLocation } from './routing'
 
 export const gameRoutes: RouteRecordRaw[] = [
   {
@@ -12,7 +13,9 @@ export const gameRoutes: RouteRecordRaw[] = [
         name: RouteName.GamePlay,
         component: () => import('./pages/GamePlayPage.vue'),
         beforeEnter: () => {
-          if (!useGameStore().isGameStarted) return { name: RouteName.GameSetup }
+          const game = useGameStore()
+          if (!game.isGameStarted) return { name: RouteName.GameSetup }
+          if (game.context.kind !== 'casual') return activeGameLocation(game.context)
         },
       },
       {
@@ -20,7 +23,8 @@ export const gameRoutes: RouteRecordRaw[] = [
         name: RouteName.GameSetup,
         component: () => import('./pages/GameSetupPage.vue'),
         beforeEnter: () => {
-          if (useGameStore().isGameStarted) return { name: RouteName.GamePlay }
+          const game = useGameStore()
+          if (game.isGameStarted) return activeGameLocation(game.context)
         },
       },
     ],

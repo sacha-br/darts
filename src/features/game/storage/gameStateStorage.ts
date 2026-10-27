@@ -1,8 +1,9 @@
-import type { DartThrow, Player, TurnRecord } from '../domain/types'
+import type { DartThrow, MatchContext, Player, TurnRecord } from '../domain/types'
+import { CASUAL_CONTEXT } from '../domain/types'
 import { DEFAULT_GAME_RULES } from '../constants/rules'
 
 const STORAGE_KEY = 'dartsGameState'
-const SCHEMA_VERSION = 2
+const SCHEMA_VERSION = 3
 
 export interface GameStateSnapshot {
   players: Player[]
@@ -18,15 +19,20 @@ export interface GameStateSnapshot {
   startScore: number
   endWithDouble: boolean
   dartsPerTurn: number
+  context: MatchContext
 }
 
-interface StoredGameStateV2 extends GameStateSnapshot {
+interface StoredGameStateV3 extends GameStateSnapshot {
   version: typeof SCHEMA_VERSION
 }
 
+/** Схема v2: все партии были быстрыми, контекста не было. */
+type GameStateSnapshotV2 = Omit<GameStateSnapshot, 'context'>
+
+/** Схема без поля `version`: броски в истории хранились строками ("D20", ранее "2x20"). */
 interface StoredGameStateV1
   extends Omit<
-    GameStateSnapshot,
+    GameStateSnapshotV2,
     'history' | 'dartsPerTurn' | 'playToLast' | 'startScore' | 'endWithDouble'
   > {
   history?: Array<Omit<TurnRecord, 'throws'> & { throws: string[] }>
@@ -48,7 +54,7 @@ function parseLegacyThrow(label: string): DartThrow {
   return { zone: Number(zone), multiplier }
 }
 
-function migrateFromV1(legacy: StoredGameStateV1): GameStateSnapshot {
+function migrateFromV1(legacy: StoredGameStateV1): GameStateSnapshotV2 {
   const { history, maxThrowsPerLeg, ...rest } = legacy
   return {
     ...rest,
@@ -61,6 +67,10 @@ function migrateFromV1(legacy: StoredGameStateV1): GameStateSnapshot {
     endWithDouble: legacy.endWithDouble ?? false,
     dartsPerTurn: maxThrowsPerLeg ?? DEFAULT_GAME_RULES.dartsPerTurn,
   }
+}
+
+function migrateFromV2(state: GameStateSnapshotV2): GameStateSnapshot {
+  return { ...state, context: CASUAL_CONTEXT }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -76,17 +86,21 @@ export function loadGameState(): GameStateSnapshot | null {
     if (!isRecord(parsed) || !Array.isArray(parsed.players)) return null
 
     if (parsed.version === SCHEMA_VERSION) {
-      const { version, ...state } = parsed as unknown as StoredGameStateV2
+      const { version, ...state } = parsed as unknown as StoredGameStateV3
       return state
     }
-    return migrateFromV1(parsed as unknown as StoredGameStateV1)
+    if (parsed.version === 2) {
+      const { version, ...state } = parsed as unknown as GameStateSnapshotV2 & { version: 2 }
+      return migrateFromV2(state)
+    }
+    return migrateFromV2(migrateFromV1(parsed as unknown as StoredGameStateV1))
   } catch {
     return null
   }
 }
 
 export function saveGameState(state: GameStateSnapshot): void {
-  const stored: StoredGameStateV2 = { version: SCHEMA_VERSION, ...state }
+  const stored: StoredGameStateV3 = { version: SCHEMA_VERSION, ...state }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
 }
 

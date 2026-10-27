@@ -3,6 +3,7 @@ import { shallowRef } from 'vue'
 import { useI18n } from '@/shared/i18n/useI18n'
 import type { GameSetupConfig } from '../domain/types'
 import { DEFAULT_GAME_RULES, DEFAULT_PLAYER_NAMES } from '../constants/rules'
+import GameRulesFields from './GameRulesFields.vue'
 
 const emit = defineEmits<{
   submit: [config: GameSetupConfig]
@@ -52,53 +53,13 @@ function onStartGame(): void {
           :placeholder="t('placeholder_names')"
         />
       </div>
-      <div>
-        <label class="form-check-label" for="playToLast">
-          {{ t('label_play_to_score') }}
-        </label>
-        <input
-          v-model.number="startScore"
-          type="number"
-          class="form-control mb-3"
-          min="1"
-        />
-      </div>
-      <div>
-        <label class="form-check-label" for="playToLast">
-          {{ t('label_throw_per_leg') }}
-        </label>
-        <input
-          v-model.number="dartsPerTurn"
-          type="number"
-          class="form-control mb-3"
-          min="1"
-          max="10"
-          default="3"
-        />
-      </div>
-      <div class="form-check mb-3 text-start">
-        <input
-          v-model="playToLast"
-          class="form-check-input"
-          type="checkbox"
-          id="playToLast"
-        />
-        <label class="form-check-label" for="playToLast">
-          {{ t('label_play_to_last') }}
-        </label>
-      </div>
 
-      <div class="form-check mb-3 text-start">
-        <input
-          v-model="endWithDouble"
-          class="form-check-input"
-          type="checkbox"
-          id="endWithDouble"
-        />
-        <label class="form-check-label" for="endWithDouble">
-          {{ t('label_end_with_double') }}
-        </label>
-      </div>
+      <GameRulesFields
+        v-model:start-score="startScore"
+        v-model:darts-per-turn="dartsPerTurn"
+        v-model:play-to-last="playToLast"
+        v-model:end-with-double="endWithDouble"
+      />
 
       <button class="btn btn-primary w-100" @click="onStartGame">
         {{ t('btn_start') }}

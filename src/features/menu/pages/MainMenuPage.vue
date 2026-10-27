@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 import { useGameStore } from '@/features/game/stores/gameStore'
+import { activeGameLocation } from '@/features/game/routing'
 import { useI18n } from '@/shared/i18n/useI18n'
 import { RouteName } from '@/shared/router/routeNames'
 import MenuTile from '../components/MenuTile.vue'
@@ -22,16 +23,19 @@ const gameItem = computed<MenuItem>(() =>
   game.isGameStarted
     ? {
         id: 'game',
-        to: { name: RouteName.GamePlay },
+        to: activeGameLocation(game.context),
         icon: '▶️',
         title: t('menu_continue'),
-        description: t('menu_continue_desc'),
+        description:
+          game.context.kind === 'tournament'
+            ? t('menu_continue_tournament_desc')
+            : t('menu_continue_desc'),
         primary: true,
       }
     : {
         id: 'game',
         to: { name: RouteName.GameSetup },
-        icon: '',
+        icon: '🎯',
         title: t('menu_play'),
         description: t('menu_play_desc'),
         primary: true,
@@ -42,15 +46,15 @@ const items = computed<MenuItem[]>(() => [
   gameItem.value,
   {
     id: 'tournament',
-    to: { name: RouteName.Tournament },
-    icon: '',
+    to: { name: RouteName.Tournaments },
+    icon: '🏆',
     title: t('menu_tournament'),
     description: t('menu_tournament_desc'),
   },
   {
     id: 'statistics',
     to: { name: RouteName.Statistics },
-    icon: '',
+    icon: '📊',
     title: t('menu_statistics'),
     description: t('menu_statistics_desc'),
   },

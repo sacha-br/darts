@@ -3,10 +3,11 @@ import { ref, shallowRef, computed } from 'vue'
 import type {
   DartThrow,
   GameSetupConfig,
+  MatchContext,
   Player,
   TurnRecord,
 } from '../domain/types'
-import { BUST } from '../domain/types'
+import { BUST, CASUAL_CONTEXT } from '../domain/types'
 import { createThrow, turnScore } from '../domain/throws'
 import { evaluateTurn } from '../domain/turn'
 import {
@@ -37,6 +38,7 @@ export const useGameStore = defineStore('game', () => {
   const endWithDouble = shallowRef(DEFAULT_GAME_RULES.endWithDouble)
   const startScore = shallowRef(DEFAULT_GAME_RULES.startScore)
   const dartsPerTurn = shallowRef(DEFAULT_GAME_RULES.dartsPerTurn)
+  const context = shallowRef<MatchContext>(CASUAL_CONTEXT)
 
   // ─── Множитель (только для классической доски)
   const multiplier = shallowRef(1)
@@ -68,7 +70,11 @@ export const useGameStore = defineStore('game', () => {
 
   // ─── Действия
 
-  function startGame(config: GameSetupConfig): void {
+  function startGame(
+    config: GameSetupConfig,
+    matchContext: MatchContext = CASUAL_CONTEXT,
+  ): void {
+    context.value = matchContext
     players.value = config.playerNames.map((name) => ({
       name,
       score: config.startScore,
@@ -292,6 +298,7 @@ export const useGameStore = defineStore('game', () => {
 
   function newGame(): void {
     clearGameState()
+    context.value = CASUAL_CONTEXT
     players.value = []
     currentPlayerIndex.value = 0
     multiplier.value = 1
@@ -328,6 +335,7 @@ export const useGameStore = defineStore('game', () => {
       startScore: startScore.value,
       endWithDouble: endWithDouble.value,
       dartsPerTurn: dartsPerTurn.value,
+      context: context.value,
     }
     saveGameState(state)
   }
@@ -349,6 +357,7 @@ export const useGameStore = defineStore('game', () => {
     startScore.value = state.startScore
     endWithDouble.value = state.endWithDouble
     dartsPerTurn.value = state.dartsPerTurn
+    context.value = state.context
     multiplier.value = 1
     isProcessingTurn.value = false
 
@@ -382,6 +391,7 @@ export const useGameStore = defineStore('game', () => {
     endWithDouble,
     multiplier,
     dartsPerTurn,
+    context,
     bustModalVisible,
     winModalData,
     isProcessingTurn,
