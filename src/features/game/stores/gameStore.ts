@@ -117,7 +117,10 @@ export const useGameStore = defineStore('game', () => {
     if (currentTurnThrows.value.length === dartsPerTurn.value) {
       isProcessingTurn.value = true
       setTimeout(() => finishTurn(), AUTO_FINISH_DELAY_MS)
-    } else if (currentPlayer.value.score - currentTurnSum.value <= 0) {
+    } else if (
+      currentPlayer.value.score - currentTurnSum.value <=
+      +endWithDouble.value
+    ) {
       isProcessingTurn.value = true
       setTimeout(() => finishTurn(), AUTO_FINISH_DELAY_MS)
     }
