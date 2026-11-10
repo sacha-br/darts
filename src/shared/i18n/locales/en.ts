@@ -69,6 +69,17 @@ export const en: TranslationMap = {
   tournament_match_banner: '🏆 {{name}} · match #{{number}}',
   btn_save_result: 'Save result and return to tournament',
   confirm_replace_game: 'The unfinished match will be lost. Continue?',
+  tournament_table_empty: 'Standings will appear after the first finished match.',
+  standings_th_position: 'Pos.',
+  standings_th_played: 'Played',
+  standings_th_place_count: 'Times finished in place {{place}}',
+  standings_th_avg_place: 'Avg. place',
+  standings_th_points: 'Points',
+  standings_trend_up: 'Up {{count}}',
+  standings_trend_down: 'Down {{count}}',
+  standings_points_scale_item: 'place {{place}}: {{points}}',
+  standings_points_hint:
+    'Points per place: {{scale}}, others get 0. Players who check out in the same round share the place and its points. Ties on points go to the player with more 1st places, then 2nd places, and so on.',
   value_yes: 'Yes',
   value_no: 'No',
 

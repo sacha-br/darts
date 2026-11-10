@@ -67,6 +67,17 @@ export const ru = {
   tournament_match_banner: '🏆 {{name}} · партия №{{number}}',
   btn_save_result: 'Записать результат и вернуться в турнир',
   confirm_replace_game: 'Незаконченная партия будет потеряна. Продолжить?',
+  tournament_table_empty: 'Таблица появится после первой завершённой партии.',
+  standings_th_position: 'Поз.',
+  standings_th_played: 'Игры',
+  standings_th_place_count: 'Сколько раз занято {{place}}-е место',
+  standings_th_avg_place: 'Ср. место',
+  standings_th_points: 'Очки',
+  standings_trend_up: 'Поднялся на {{count}}',
+  standings_trend_down: 'Опустился на {{count}}',
+  standings_points_scale_item: '{{place}}-е — {{points}}',
+  standings_points_hint:
+    'Очки за места: {{scale}}, остальные — 0. Закрывшиеся в одном раунде делят место и получают одинаковые очки. При равенстве очков выше тот, у кого больше 1-х мест, затем 2-х и т. д.',
   value_yes: 'Да',
   value_no: 'Нет',
 

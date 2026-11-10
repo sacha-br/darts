@@ -5,7 +5,6 @@ import GameRulesSummary from '@/features/game/components/GameRulesSummary.vue'
 import { useI18n } from '@/shared/i18n/useI18n'
 import { RouteName } from '@/shared/router/routeNames'
 import PageHeader from '@/shared/components/PageHeader.vue'
-import SkeletonCard from '@/shared/components/SkeletonCard.vue'
 import { useTournamentStore } from '../stores/tournamentStore'
 import { useTournamentMatchLauncher } from '../composables/useTournamentMatchLauncher'
 import {
@@ -13,8 +12,10 @@ import {
   canEditParticipants,
   getTournamentStatus,
 } from '../domain/tournament'
+import { computeStandings } from '../domain/standings'
 import ParticipantsEditor from '../components/ParticipantsEditor.vue'
 import TournamentMatchList from '../components/TournamentMatchList.vue'
+import TournamentStandingsTable from '../components/TournamentStandingsTable.vue'
 import TournamentStatusBadge from '../components/TournamentStatusBadge.vue'
 
 const props = defineProps<{
@@ -38,6 +39,8 @@ const view = computed(() => {
     canCreateMatch: canCreateMatch(current),
   }
 })
+
+const standings = computed(() => (tournament.value ? computeStandings(tournament.value) : []))
 
 const activeMatchId = computed(() => {
   const context = game.context
@@ -120,7 +123,7 @@ function onRemoveMatch(matchId: string): void {
           </div>
         </section>
 
-        <SkeletonCard :title="t('tournament_section_table')" :lines="4" />
+        <TournamentStandingsTable :standings="standings" />
       </div>
     </div>
   </div>
