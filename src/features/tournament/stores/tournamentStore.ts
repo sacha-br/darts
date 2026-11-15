@@ -55,11 +55,16 @@ export const useTournamentStore = defineStore('tournament', () => {
     await repository.save(next)
   }
 
-  async function create(input: { name: string; rules: GameRules }): Promise<Tournament> {
+  async function create(input: {
+    name: string
+    rules: GameRules
+    plannedMatches: number
+  }): Promise<Tournament> {
     const tournament = createTournament({
       id: createId(),
       name: input.name,
       rules: input.rules,
+      plannedMatches: input.plannedMatches,
       createdAt: new Date().toISOString(),
     })
     await commit(tournament)

@@ -10,6 +10,7 @@ import { useTournamentMatchLauncher } from '../composables/useTournamentMatchLau
 import {
   canCreateMatch,
   canEditParticipants,
+  countFinishedRegularMatches,
   getTournamentStatus,
 } from '../domain/tournament'
 import { computeStandings } from '../domain/standings'
@@ -25,18 +26,27 @@ const props = defineProps<{
 const store = useTournamentStore()
 const game = useGameStore()
 const launcher = useTournamentMatchLauncher()
-const { t } = useI18n()
+const { t, formatDate } = useI18n()
 
 const tournament = computed(() => store.getById(props.tournamentId))
 
 const view = computed(() => {
   const current = tournament.value
   if (!current) return null
+  const dates = [t('tournament_started_at', { date: formatDate(current.createdAt) })]
+  if (current.finishedAt) {
+    dates.push(t('tournament_finished_at', { date: formatDate(current.finishedAt) }))
+  }
   return {
     status: getTournamentStatus(current),
-    createdAt: new Date(current.createdAt).toLocaleDateString(),
+    title: t('tournament_title', { name: current.name }),
+    dates: dates.join(' · '),
     participantsLocked: !canEditParticipants(current),
     canCreateMatch: canCreateMatch(current),
+    matchesProgress: t('tournament_matches_progress', {
+      played: countFinishedRegularMatches(current),
+      total: current.plannedMatches,
+    }),
   }
 })
 
@@ -79,7 +89,7 @@ function onRemoveMatch(matchId: string): void {
     </RouterLink>
 
     <div class="d-flex justify-content-between align-items-start gap-2 mt-1">
-      <PageHeader :title="tournament.name" :subtitle="view.createdAt" />
+      <PageHeader :title="view.title" :subtitle="view.dates" />
       <TournamentStatusBadge :status="view.status" />
     </div>
 
@@ -103,7 +113,10 @@ function onRemoveMatch(matchId: string): void {
       <div class="col-lg-8 d-grid gap-3 align-content-start">
         <section class="card shadow-sm border-0">
           <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
-            <span>{{ t('tournament_matches_title') }}</span>
+            <span>
+              {{ t('tournament_matches_title') }}
+              <span class="fw-normal text-muted ms-1">{{ view.matchesProgress }}</span>
+            </span>
             <RouterLink
               v-if="view.canCreateMatch"
               :to="{ name: RouteName.TournamentMatchCreate, params: { tournamentId } }"

@@ -14,7 +14,11 @@ const { t } = useI18n()
 
 const submitting = shallowRef(false)
 
-async function onSubmit(input: { name: string; rules: GameRules }): Promise<void> {
+async function onSubmit(input: {
+  name: string
+  rules: GameRules
+  plannedMatches: number
+}): Promise<void> {
   submitting.value = true
   try {
     const tournament = await store.create(input)

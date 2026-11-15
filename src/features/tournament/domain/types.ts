@@ -34,6 +34,8 @@ export interface Tournament {
   createdAt: string
   /** Правила фиксируются при создании и действуют для всех партий турнира. */
   rules: GameRules
+  /** Сколько партий регулярного этапа нужно сыграть; задаётся при создании, после последней турнир завершается. */
+  plannedMatches: number
   participants: TournamentParticipant[]
   matches: TournamentMatch[]
   finishedAt: string | null

@@ -40,6 +40,7 @@ function requireActiveMatch(to: RouteLocationNormalized) {
 export const tournamentRoutes: RouteRecordRaw[] = [
   {
     path: 'tournaments',
+    meta: { help: 'tournament' },
     beforeEnter: () => useTournamentStore().load(),
     children: [
       {
@@ -71,6 +72,7 @@ export const tournamentRoutes: RouteRecordRaw[] = [
         name: RouteName.TournamentMatchPlay,
         component: () => import('./pages/TournamentMatchPlayPage.vue'),
         props: true,
+        meta: { boardViewToggle: true, help: 'player' },
         beforeEnter: [requireTournament, requireActiveMatch],
       },
     ],

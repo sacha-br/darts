@@ -10,12 +10,12 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const MEDALS = ['🥇', '🥈', '🥉'] as const
+const PLACE_ICONS = ['🥇', '🥈', '🥉', 'IV'] as const
 
 const isEmpty = computed(() => props.standings.every((s) => s.played === 0))
 
-const medalHeaders = computed(() =>
-  MEDALS.map((icon, index) => ({ icon, label: t('standings_th_place_count', { place: index + 1 }) })),
+const placeHeaders = computed(() =>
+  PLACE_ICONS.map((icon, index) => ({ icon, label: t('standings_th_place_count', { place: index + 1 }) })),
 )
 
 function formatTrend(change: number | null) {
@@ -30,8 +30,7 @@ const rows = computed(() =>
     id: standing.participantId,
     position: standing.position,
     name: standing.name,
-    played: standing.played,
-    medalCounts: MEDALS.map((_, index) => standing.placeCounts[index] ?? 0),
+    placeCounts: PLACE_ICONS.map((_, index) => standing.placeCounts[index] ?? 0),
     averagePlace: standing.averagePlace === null ? '—' : standing.averagePlace.toFixed(2),
     points: standing.points,
     isLeader: standing.position === 1,
@@ -63,9 +62,8 @@ const pointsHint = computed(() =>
             <tr>
               <th scope="col">{{ t('standings_th_position') }}</th>
               <th scope="col">{{ t('th_player') }}</th>
-              <th scope="col" class="text-center">{{ t('standings_th_played') }}</th>
               <th
-                v-for="header in medalHeaders"
+                v-for="header in placeHeaders"
                 :key="header.icon"
                 scope="col"
                 class="text-center"
@@ -88,8 +86,7 @@ const pointsHint = computed(() =>
                 </small>
               </td>
               <td class="fw-bold">{{ row.name }}</td>
-              <td class="text-center">{{ row.played }}</td>
-              <td v-for="(count, index) in row.medalCounts" :key="index" class="text-center">
+              <td v-for="(count, index) in row.placeCounts" :key="index" class="text-center">
                 {{ count }}
               </td>
               <td class="text-center">{{ row.averagePlace }}</td>

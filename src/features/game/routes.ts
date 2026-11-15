@@ -12,6 +12,7 @@ export const gameRoutes: RouteRecordRaw[] = [
         path: '',
         name: RouteName.GamePlay,
         component: () => import('./pages/GamePlayPage.vue'),
+        meta: { boardViewToggle: true, help: 'player' },
         beforeEnter: () => {
           const game = useGameStore()
           if (!game.isGameStarted) return { name: RouteName.GameSetup }
