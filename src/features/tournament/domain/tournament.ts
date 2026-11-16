@@ -10,6 +10,10 @@ import type {
 
 export const MIN_TOURNAMENT_PARTICIPANTS = 2
 
+export const DEFAULT_PLANNED_MATCHES = 20
+export const MIN_PLANNED_MATCHES = 1
+export const MAX_PLANNED_MATCHES = 100
+
 export type ParticipantNameError = 'empty' | 'duplicate'
 
 export function getTournamentStatus(tournament: Tournament): TournamentStatus {
@@ -17,15 +21,29 @@ export function getTournamentStatus(tournament: Tournament): TournamentStatus {
   return tournament.matches.length > 0 ? 'active' : 'draft'
 }
 
+export function isValidPlannedMatches(value: number): boolean {
+  return Number.isInteger(value) && value >= MIN_PLANNED_MATCHES && value <= MAX_PLANNED_MATCHES
+}
+
+function regularMatches(tournament: Tournament): TournamentMatch[] {
+  return tournament.matches.filter((m) => m.stage === 'regular')
+}
+
+export function countFinishedRegularMatches(tournament: Tournament): number {
+  return regularMatches(tournament).filter((m) => m.status === 'finished').length
+}
+
 /** Состав фиксируется с первой партией: в регулярном этапе каждая партия идёт со всеми участниками. */
 export function canEditParticipants(tournament: Tournament): boolean {
   return getTournamentStatus(tournament) === 'draft'
 }
 
+/** Незавершённые партии тоже занимают место в лимите, иначе партий окажется больше запланированного. */
 export function canCreateMatch(tournament: Tournament): boolean {
   return (
     getTournamentStatus(tournament) !== 'finished' &&
-    tournament.participants.length >= MIN_TOURNAMENT_PARTICIPANTS
+    tournament.participants.length >= MIN_TOURNAMENT_PARTICIPANTS &&
+    regularMatches(tournament).length < tournament.plannedMatches
   )
 }
 
@@ -43,13 +61,18 @@ export function createTournament(input: {
   id: string
   name: string
   rules: GameRules
+  plannedMatches: number
   createdAt: string
 }): Tournament {
+  if (!isValidPlannedMatches(input.plannedMatches)) {
+    throw new Error(`Invalid planned matches count: ${input.plannedMatches}`)
+  }
   return {
     id: input.id,
     name: input.name.trim(),
     createdAt: input.createdAt,
     rules: { ...input.rules },
+    plannedMatches: input.plannedMatches,
     participants: [],
     matches: [],
     finishedAt: null,
@@ -135,7 +158,7 @@ export function recordMatchResult(
   if (!match || match.status !== 'pending') {
     throw new Error('Result can be recorded only for a pending match')
   }
-  return {
+  const next: Tournament = {
     ...tournament,
     matches: tournament.matches.map((m) =>
       m.id === input.matchId
@@ -143,6 +166,9 @@ export function recordMatchResult(
         : m,
     ),
   }
+  return countFinishedRegularMatches(next) >= next.plannedMatches
+    ? { ...next, finishedAt: input.finishedAt }
+    : next
 }
 
 export function lineupNames(tournament: Tournament, lineup: readonly string[]): string[] {

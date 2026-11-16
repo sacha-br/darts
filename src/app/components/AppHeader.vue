@@ -3,17 +3,29 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSettingsStore } from '@/shared/stores/settingsStore'
 import { useI18n } from '@/shared/i18n/useI18n'
+import type { TranslationKey } from '@/shared/i18n/locales/ru'
 import { RouteName } from '@/shared/router/routeNames'
+import type { HelpTopic } from '@/shared/router/routeMeta'
 
-const settings = useSettingsStore()
-const route = useRoute()
-const { t } = useI18n()
+defineProps<{
+  helpTopic: HelpTopic | null
+}>()
 
 const emit = defineEmits<{
   toggleHelp: []
 }>()
 
+const settings = useSettingsStore()
+const route = useRoute()
+const { t } = useI18n()
+
+const HELP_BUTTON_LABELS: Record<HelpTopic, TranslationKey> = {
+  player: 'nav_help',
+  tournament: 'nav_tournament_rules',
+}
+
 const isMenuPage = computed(() => route.name === RouteName.Menu)
+const showBoardViewToggle = computed(() => route.meta.boardViewToggle === true)
 </script>
 
 <template>
@@ -48,7 +60,7 @@ const isMenuPage = computed(() => route.name === RouteName.Menu)
     </div>
 
     <!-- Переключатель вида доски -->
-    <div class="btn-group btn-group-sm" role="group">
+    <div v-if="showBoardViewToggle" class="btn-group btn-group-sm" role="group">
       <input
         type="radio"
         class="btn-check"
@@ -76,10 +88,12 @@ const isMenuPage = computed(() => route.name === RouteName.Menu)
 
     <!-- Кнопка справки -->
     <button
+      v-if="helpTopic"
+      type="button"
       class="btn btn-sm btn-outline-info"
       @click="emit('toggleHelp')"
     >
-      {{ t('nav_help') }}
+      {{ t(HELP_BUTTON_LABELS[helpTopic]) }}
     </button>
   </div>
 </template>

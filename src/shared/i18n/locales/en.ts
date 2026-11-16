@@ -2,6 +2,7 @@ import type { TranslationMap } from './ru'
 
 export const en: TranslationMap = {
   nav_help: 'ℹ️ Help',
+  nav_tournament_rules: 'ℹ️ Tournament rules',
   nav_menu: '← Menu',
   view_circle: 'Circle',
   view_classic: 'Grid',
@@ -34,7 +35,15 @@ export const en: TranslationMap = {
   tournament_status_active: 'In progress',
   tournament_status_finished: 'Finished',
   tournament_participants_count: 'participants: {{count}}',
-  tournament_matches_count: 'matches: {{count}}',
+  tournament_matches_count: 'matches: {{played}} of {{total}}',
+  tournament_matches_progress: '{{played}} / {{total}}',
+  tournament_title: 'Tournament: “{{name}}”',
+  tournament_started_at: 'Start date: {{date}}',
+  tournament_finished_at: 'End date: {{date}}',
+  label_planned_matches: 'Number of matches',
+  planned_matches_hint:
+    'Every participant plays in each match. The tournament finishes after the last one; the number cannot be changed later.',
+  planned_matches_error: 'Enter a whole number from {{min}} to {{max}}',
   tournament_create_title: 'New tournament',
   label_tournament_name: 'Tournament name',
   placeholder_tournament_name: 'e.g. Autumn Cup',
@@ -55,6 +64,8 @@ export const en: TranslationMap = {
   match_number: 'Match #{{number}}',
   match_status_pending: 'Unfinished',
   match_status_finished: 'Finished',
+  match_date_created: 'Match created',
+  match_date_finished: 'Match finished',
   btn_match_continue: 'Continue',
   btn_match_start: 'Start',
   btn_match_delete: 'Delete',
@@ -69,6 +80,16 @@ export const en: TranslationMap = {
   tournament_match_banner: '🏆 {{name}} · match #{{number}}',
   btn_save_result: 'Save result and return to tournament',
   confirm_replace_game: 'The unfinished match will be lost. Continue?',
+  tournament_table_empty: 'Standings will appear after the first finished match.',
+  standings_th_position: 'Pos.',
+  standings_th_place_count: 'Times finished in place {{place}}',
+  standings_th_avg_place: 'Avg. place',
+  standings_th_points: 'Points',
+  standings_trend_up: 'Up {{count}}',
+  standings_trend_down: 'Down {{count}}',
+  standings_points_scale_item: 'place {{place}}: {{points}}',
+  standings_points_hint:
+    'Points per place: {{scale}}, others get 0. Players who check out in the same round share the place and its points. Ties on points go to the player with more 1st places, then 2nd places, and so on.',
   value_yes: 'Yes',
   value_no: 'No',
 
@@ -129,6 +150,27 @@ export const en: TranslationMap = {
   th_checkout_comb: 'Combination',
   help_checkouts_legend: '* T — Triple (X3), D — Double (X2)',
   checkout_max: 'max.',
+
+  tournament_guide_title: '🏆 Tournament rules',
+  tournament_guide_current_title: 'Tournament “{{name}}”',
+  tournament_guide_h_setup: '1. Creating a tournament',
+  tournament_guide_p_setup:
+    'The name, number of matches (from {{min}} to {{max}}) and match rules are set on creation and apply until the end of the tournament — they cannot be changed later.',
+  tournament_guide_h_participants: '2. Participants',
+  tournament_guide_p_participants:
+    'At least {{min}} participants are required. They can be added or removed only before the first match; after that the roster is locked.',
+  tournament_guide_h_matches: '3. Matches',
+  tournament_guide_p_matches:
+    'Every participant plays in each match; only the throwing order is chosen before the start. Unfinished matches also count towards the number of tournament matches: they can be restarted or deleted. Only one game runs at a time — starting another match discards the progress of the unfinished one.',
+  tournament_guide_h_result: '4. Match result',
+  tournament_guide_p_result:
+    'When the match is over, press “{{button}}”. Only then does the result go into the standings.',
+  tournament_guide_h_standings: '5. Points and standings',
+  tournament_guide_p_standings:
+    'If still tied, the lower average place ranks higher; fully tied participants share the position. The ▲/▼ arrows show how the position changed after the last match.',
+  tournament_guide_h_finish: '6. Finish',
+  tournament_guide_p_finish:
+    'The tournament finishes automatically once the result of the last planned match is saved. Tournament statuses: “{{draft}}” → “{{active}}” → “{{finished}}”.',
 
   remote_toggle: 'Phone input',
   remote_new_id: 'New ID',

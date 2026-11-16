@@ -1,5 +1,6 @@
 export const ru = {
   nav_help: 'ℹ️ Инструкция',
+  nav_tournament_rules: 'ℹ️ Правила турнира',
   nav_menu: '← Меню',
   view_circle: 'Круг',
   view_classic: 'Сетка',
@@ -32,7 +33,15 @@ export const ru = {
   tournament_status_active: 'Идёт',
   tournament_status_finished: 'Завершён',
   tournament_participants_count: 'участников: {{count}}',
-  tournament_matches_count: 'партий: {{count}}',
+  tournament_matches_count: 'партий: {{played}} из {{total}}',
+  tournament_matches_progress: '{{played}} / {{total}}',
+  tournament_title: 'Турнир: «{{name}}»',
+  tournament_started_at: 'Дата начала: {{date}}',
+  tournament_finished_at: 'Дата окончания: {{date}}',
+  label_planned_matches: 'Количество партий',
+  planned_matches_hint:
+    'Каждую партию играют все участники. После последней партии турнир завершится; изменить количество потом нельзя.',
+  planned_matches_error: 'Введите целое число от {{min}} до {{max}}',
   tournament_create_title: 'Новый турнир',
   label_tournament_name: 'Название турнира',
   placeholder_tournament_name: 'Например, Осенний кубок',
@@ -53,6 +62,8 @@ export const ru = {
   match_number: 'Партия №{{number}}',
   match_status_pending: 'Не завершена',
   match_status_finished: 'Завершена',
+  match_date_created: 'Дата создания партии',
+  match_date_finished: 'Дата завершения партии',
   btn_match_continue: 'Продолжить',
   btn_match_start: 'Начать',
   btn_match_delete: 'Удалить',
@@ -67,6 +78,16 @@ export const ru = {
   tournament_match_banner: '🏆 {{name}} · партия №{{number}}',
   btn_save_result: 'Записать результат и вернуться в турнир',
   confirm_replace_game: 'Незаконченная партия будет потеряна. Продолжить?',
+  tournament_table_empty: 'Таблица появится после первой завершённой партии.',
+  standings_th_position: 'Поз.',
+  standings_th_place_count: 'Сколько раз занято {{place}}-е место',
+  standings_th_avg_place: 'Ср. место',
+  standings_th_points: 'Очки',
+  standings_trend_up: 'Поднялся на {{count}}',
+  standings_trend_down: 'Опустился на {{count}}',
+  standings_points_scale_item: '{{place}}-е — {{points}}',
+  standings_points_hint:
+    'Очки за места: {{scale}}, остальные — 0. Закрывшиеся в одном раунде делят место и получают одинаковые очки. При равенстве очков выше тот, у кого больше 1-х мест, затем 2-х и т. д.',
   value_yes: 'Да',
   value_no: 'Нет',
 
@@ -127,6 +148,27 @@ export const ru = {
   th_checkout_comb: 'Комбинация',
   help_checkouts_legend: '* T — Triple (X3), D — Double (X2)',
   checkout_max: 'макс.',
+
+  tournament_guide_title: '🏆 Правила турнира',
+  tournament_guide_current_title: 'Турнир «{{name}}»',
+  tournament_guide_h_setup: '1. Создание турнира',
+  tournament_guide_p_setup:
+    'Название, количество партий (от {{min}} до {{max}}) и правила партий задаются при создании и действуют до конца турнира — изменить их потом нельзя.',
+  tournament_guide_h_participants: '2. Участники',
+  tournament_guide_p_participants:
+    'Нужно минимум {{min}} участника. Добавлять и удалять их можно только до первой партии, затем состав фиксируется.',
+  tournament_guide_h_matches: '3. Партии',
+  tournament_guide_p_matches:
+    'В каждой партии играют все участники, перед стартом выбирается только порядок бросков. Незавершённые партии тоже входят в количество партий турнира: их можно начать заново или удалить. Одновременно идёт только одна игра — если начать другую партию, прогресс незаконченной будет потерян.',
+  tournament_guide_h_result: '4. Результат партии',
+  tournament_guide_p_result:
+    'Когда партия окончена, нажмите «{{button}}». Только после этого результат попадёт в турнирную таблицу.',
+  tournament_guide_h_standings: '5. Очки и турнирная таблица',
+  tournament_guide_p_standings:
+    'Если и здесь равенство, выше тот, у кого среднее место меньше; полностью равные участники делят позицию. Стрелки ▲/▼ показывают, как изменилась позиция после последней партии.',
+  tournament_guide_h_finish: '6. Завершение',
+  tournament_guide_p_finish:
+    'Турнир завершается автоматически, когда записан результат последней запланированной партии. Статусы турнира: «{{draft}}» → «{{active}}» → «{{finished}}».',
 
   remote_toggle: 'Ввод с телефона',
   remote_new_id: 'Новый ID',

@@ -34,12 +34,28 @@ export interface Tournament {
   createdAt: string
   /** Правила фиксируются при создании и действуют для всех партий турнира. */
   rules: GameRules
+  /** Сколько партий регулярного этапа нужно сыграть; задаётся при создании, после последней турнир завершается. */
+  plannedMatches: number
   participants: TournamentParticipant[]
   matches: TournamentMatch[]
   finishedAt: string | null
 }
 
 export type TournamentStatus = 'draft' | 'active' | 'finished'
+
+export interface TournamentStanding {
+  participantId: string
+  name: string
+  /** Игроки, равные по всем критериям, делят позицию: 1, 1, 3. */
+  position: number
+  played: number
+  points: number
+  /** `placeCounts[i]` — сколько раз участник занял место `i + 1`. */
+  placeCounts: number[]
+  averagePlace: number | null
+  /** На сколько позиций поднялся (+) или опустился (−) после последней завершённой партии; `null`, пока сравнивать не с чем. */
+  positionChange: number | null
+}
 
 /** Действующий чемпион: назначен вручную или победитель последнего турнира — побеждает более позднее событие. */
 export interface Champion {

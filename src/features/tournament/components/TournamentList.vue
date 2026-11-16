@@ -3,23 +3,26 @@ import { computed } from 'vue'
 import { useI18n } from '@/shared/i18n/useI18n'
 import { RouteName } from '@/shared/router/routeNames'
 import type { Tournament } from '../domain/types'
-import { getTournamentStatus } from '../domain/tournament'
+import { countFinishedRegularMatches, getTournamentStatus } from '../domain/tournament'
 import TournamentStatusBadge from './TournamentStatusBadge.vue'
 
 const props = defineProps<{
   tournaments: Tournament[]
 }>()
 
-const { t } = useI18n()
+const { t, formatDate } = useI18n()
 
 const rows = computed(() =>
   props.tournaments.map((tournament) => ({
     id: tournament.id,
     name: tournament.name,
     status: getTournamentStatus(tournament),
-    createdAt: new Date(tournament.createdAt).toLocaleDateString(),
+    createdAt: formatDate(tournament.createdAt),
     participantsLabel: t('tournament_participants_count', { count: tournament.participants.length }),
-    matchesLabel: t('tournament_matches_count', { count: tournament.matches.length }),
+    matchesLabel: t('tournament_matches_count', {
+      played: countFinishedRegularMatches(tournament),
+      total: tournament.plannedMatches,
+    }),
   })),
 )
 </script>

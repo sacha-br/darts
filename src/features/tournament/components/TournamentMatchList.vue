@@ -15,7 +15,7 @@ const emit = defineEmits<{
   remove: [matchId: string]
 }>()
 
-const { t } = useI18n()
+const { t, formatDateTime } = useI18n()
 
 const PLACE_ICONS = ['🥇', '🥈', '🥉'] as const
 
@@ -33,14 +33,20 @@ function formatResults(results: TournamentMatchResult[]): string {
 const rows = computed(() =>
   [...props.tournament.matches]
     .sort((a, b) => b.number - a.number)
-    .map((match) => ({
-      id: match.id,
-      title: t('match_number', { number: match.number }),
-      lineup: lineupNames(props.tournament, match.lineup).join(' → '),
-      isFinished: match.status === 'finished',
-      isActive: match.id === props.activeMatchId,
-      results: formatResults(match.results),
-    })),
+    .map((match) => {
+      const dateIso = match.finishedAt ?? match.createdAt
+      return {
+        id: match.id,
+        title: t('match_number', { number: match.number }),
+        dateIso,
+        date: formatDateTime(dateIso),
+        dateLabel: match.finishedAt ? t('match_date_finished') : t('match_date_created'),
+        lineup: lineupNames(props.tournament, match.lineup).join(' → '),
+        isFinished: match.status === 'finished',
+        isActive: match.id === props.activeMatchId,
+        results: formatResults(match.results),
+      }
+    }),
 )
 </script>
 
@@ -61,6 +67,13 @@ const rows = computed(() =>
             >
               {{ row.isFinished ? t('match_status_finished') : t('match_status_pending') }}
             </span>
+            <time
+              class="small fw-normal text-muted ms-2 text-nowrap"
+              :datetime="row.dateIso"
+              :title="row.dateLabel"
+            >
+              {{ row.date }}
+            </time>
           </div>
           <div class="small text-muted">
             {{ row.isFinished ? row.results : row.lineup }}

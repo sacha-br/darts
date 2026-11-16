@@ -5,16 +5,18 @@ import GameRulesSummary from '@/features/game/components/GameRulesSummary.vue'
 import { useI18n } from '@/shared/i18n/useI18n'
 import { RouteName } from '@/shared/router/routeNames'
 import PageHeader from '@/shared/components/PageHeader.vue'
-import SkeletonCard from '@/shared/components/SkeletonCard.vue'
 import { useTournamentStore } from '../stores/tournamentStore'
 import { useTournamentMatchLauncher } from '../composables/useTournamentMatchLauncher'
 import {
   canCreateMatch,
   canEditParticipants,
+  countFinishedRegularMatches,
   getTournamentStatus,
 } from '../domain/tournament'
+import { computeStandings } from '../domain/standings'
 import ParticipantsEditor from '../components/ParticipantsEditor.vue'
 import TournamentMatchList from '../components/TournamentMatchList.vue'
+import TournamentStandingsTable from '../components/TournamentStandingsTable.vue'
 import TournamentStatusBadge from '../components/TournamentStatusBadge.vue'
 
 const props = defineProps<{
@@ -24,20 +26,31 @@ const props = defineProps<{
 const store = useTournamentStore()
 const game = useGameStore()
 const launcher = useTournamentMatchLauncher()
-const { t } = useI18n()
+const { t, formatDate } = useI18n()
 
 const tournament = computed(() => store.getById(props.tournamentId))
 
 const view = computed(() => {
   const current = tournament.value
   if (!current) return null
+  const dates = [t('tournament_started_at', { date: formatDate(current.createdAt) })]
+  if (current.finishedAt) {
+    dates.push(t('tournament_finished_at', { date: formatDate(current.finishedAt) }))
+  }
   return {
     status: getTournamentStatus(current),
-    createdAt: new Date(current.createdAt).toLocaleDateString(),
+    title: t('tournament_title', { name: current.name }),
+    dates: dates.join(' · '),
     participantsLocked: !canEditParticipants(current),
     canCreateMatch: canCreateMatch(current),
+    matchesProgress: t('tournament_matches_progress', {
+      played: countFinishedRegularMatches(current),
+      total: current.plannedMatches,
+    }),
   }
 })
+
+const standings = computed(() => (tournament.value ? computeStandings(tournament.value) : []))
 
 const activeMatchId = computed(() => {
   const context = game.context
@@ -76,7 +89,7 @@ function onRemoveMatch(matchId: string): void {
     </RouterLink>
 
     <div class="d-flex justify-content-between align-items-start gap-2 mt-1">
-      <PageHeader :title="tournament.name" :subtitle="view.createdAt" />
+      <PageHeader :title="view.title" :subtitle="view.dates" />
       <TournamentStatusBadge :status="view.status" />
     </div>
 
@@ -100,7 +113,10 @@ function onRemoveMatch(matchId: string): void {
       <div class="col-lg-8 d-grid gap-3 align-content-start">
         <section class="card shadow-sm border-0">
           <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
-            <span>{{ t('tournament_matches_title') }}</span>
+            <span>
+              {{ t('tournament_matches_title') }}
+              <span class="fw-normal text-muted ms-1">{{ view.matchesProgress }}</span>
+            </span>
             <RouterLink
               v-if="view.canCreateMatch"
               :to="{ name: RouteName.TournamentMatchCreate, params: { tournamentId } }"
@@ -120,7 +136,7 @@ function onRemoveMatch(matchId: string): void {
           </div>
         </section>
 
-        <SkeletonCard :title="t('tournament_section_table')" :lines="4" />
+        <TournamentStandingsTable :standings="standings" />
       </div>
     </div>
   </div>
